@@ -13,5 +13,6 @@ setup(
     install_requires=[
         'simplejson==3.0.7', 
         'django', 
+        'telapi',
     ]
 )
