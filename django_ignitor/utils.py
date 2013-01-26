@@ -41,14 +41,17 @@ class BaseControllerMetaclass(type):
                 # Collect the route regex from the controller, to be inserted into the URL dispatcher
                 base_route = instance._meta.route
                 
+                # Make a linkable alias for django's url template helper
+                linkable_alias = '%s.%s.%s' % (instance.__module__, controller_name, action_name, )
+                
                 # Add the primary route, hotswapping keywords for their dynamic replacements
-                urls = [url(base_route.replace(':controller', controller_name).replace(':action', action_name), callable)]
+                urls = [url(base_route.replace(':controller', controller_name).replace(':action', action_name), callable, name=linkable_alias)]
                 
                 # If we're working with an Index[Controller|Action], we need to create special routes
                 if controller_name == 'index' and action_name == 'index':
-                    urls += [url(r'^$', callable)]
+                    urls += [url(r'^$', callable, name=linkable_alias)]
                 if action_name == 'index':
-                    urls += [url(r'^%s$' % controller_name, callable)]
+                    urls += [url(r'^%s$' % controller_name, callable, name=linkable_alias)]
 
                 # Add the collection of URL routes to the URL Dispatcher
                 urlpatterns += patterns('', *urls)
@@ -72,7 +75,8 @@ def template_finder(instance, method, *args, **kwargs):
     
     # If the method does not return a response, build one for it
     if not method_response:
-        return instance.render_to_response('%s/%s.html' % (
+        return instance.render_to_response('%s%s/%s.html' % (
+            getattr(instance._meta, 'template_root', ''),
             controller_name, 
             action_name, 
         ), instance.template_dict)
@@ -84,6 +88,7 @@ class BaseController(object):
     
     class Meta:
         route = r'^:controller/:action$'
+        template_root = ''
     
     def __init__(self):
         self.template_dict = {}
