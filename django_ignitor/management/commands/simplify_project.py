@@ -9,7 +9,11 @@ class Command(BaseCommand):
     help = 'Remove some of the mundane boilerplate items necessary when working with django'
     
     def handle(self, *args, **options):
+        print settings.SETTINGS_MODULE
+        
         settings_module = importlib.import_module(settings.SETTINGS_MODULE)
+        
+        application_module = settings.SETTINGS_MODULE.replace('.settings', '')
         
         settings_file = settings_module.__file__
         
@@ -41,3 +45,48 @@ TEMPLATE_DIRS += (
             os.mkdir('%s/templates' % settings_directory)
             
             print "Templates directory has been created at %s/templates" % settings_directory
+        
+        if os.path.isfile('%s/controllers.py' % settings_directory):
+            print "Controller module already exists, no work necessary"
+        else:
+            with open('%s/controllers.py' % settings_directory, 'w+') as controllers_handler:
+                controllers_handler.write('from django_ignitor import BaseController')
+        
+        urls_module = importlib.import_module('%s.urls' % application_module)
+        
+        overwrite_urls = False
+        
+        try:
+            print urls_module.urlpatterns
+            print len(urls_module.urlpatterns)
+            
+            if len(urls_module.urlpatterns) == 0:
+                overwrite_urls = True
+        except AttributeError, e:
+            overwrite_urls = True
+        
+        if overwrite_urls:
+            print "Overwriting the urls.py file, being that no urlpatterns have been defined"
+            
+            with open('%s/urls.py' % settings_directory, 'w+') as urls_handler:
+                urls_handler.write("""from django.conf.urls import patterns, include, url
+from django_ignitor import urlpatterns
+from controllers import *
+
+urlpatterns += patterns('',
+    # Examples:
+    # url(r'^$', '%s.views.home', name='home'),
+    # url(r'^%s/', include('%s.foo.urls')),
+)""" % (application_module, application_module, application_module, ))
+        else:
+            print "Appending to the urls.py file, being that urlpatterns have already been defined"
+            
+            with open('%s/urls.py' % settings_directory, 'a+') as urls_handler:
+                urls_handler.write("""
+
+from django_ignitor import urlpatterns as ignitor_urlpatterns
+from controllers import *
+
+urlpatterns = ignitor_urlpatterns + urlpatterns
+""")
+            

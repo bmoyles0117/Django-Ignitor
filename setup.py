@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='Django Ignitor',
-    version='0.091',
+    version='0.092',
     description='Giving Django an MVC Framework layer',
     author='Bryan Moyles',
     author_email='bryan.moyles@teltechcorp.com',
