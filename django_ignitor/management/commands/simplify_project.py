@@ -9,8 +9,6 @@ class Command(BaseCommand):
     help = 'Remove some of the mundane boilerplate items necessary when working with django'
     
     def handle(self, *args, **options):
-        print settings.SETTINGS_MODULE
-        
         settings_module = importlib.import_module(settings.SETTINGS_MODULE)
         
         application_module = settings.SETTINGS_MODULE.replace('.settings', '')
@@ -50,16 +48,20 @@ TEMPLATE_DIRS += (
             print "Controller module already exists, no work necessary"
         else:
             with open('%s/controllers.py' % settings_directory, 'w+') as controllers_handler:
-                controllers_handler.write('from django_ignitor import BaseController')
+                controllers_handler.write("""from django_ignitor import BaseController
+
+# class IndexController(BaseController):
+#     # Creates a url mapping to [/, /index, /index/index]
+#     def indexAction(self, request):
+#         # Returning None renders template found at index/index.html
+#         return
+""")
         
         urls_module = importlib.import_module('%s.urls' % application_module)
         
         overwrite_urls = False
         
         try:
-            print urls_module.urlpatterns
-            print len(urls_module.urlpatterns)
-            
             if len(urls_module.urlpatterns) == 0:
                 overwrite_urls = True
         except AttributeError, e:

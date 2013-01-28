@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# If the directory does not exist, create it using django admin
+if [ ! -d "$1" ]; then
+    django-admin.py startproject $1; 
+fi
+
+cd $1; 
+
+# Append the application to the end of the settings
+echo "INSTALLED_APPS += ('django_ignitor', )" >> $1/settings.py; 
+
+# Execute the simplify command, to create controllers and urls
+python manage.py simplify_project;
+
+# Run the server to create one less hurdle
+python manage.py runserver;
