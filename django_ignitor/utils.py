@@ -75,7 +75,7 @@ def template_finder(instance, method, *args, **kwargs):
     
     # If the method does not return a response, build one for it
     if not method_response:
-        return instance.render_to_response('%s%s/%s.html' % (
+        return instance.render(args[0], '%s%s/%s.html' % (
             getattr(instance._meta, 'template_root', ''),
             controller_name, 
             action_name, 
